@@ -29,7 +29,17 @@
 import ../nimage
 import streams
 
+import times, os
+
+template benchmark(code: untyped) =
+  block:
+    let t0 = epochTime()
+    code
+    let elapsed = epochTime() - t0
+    echo "CPU Time: ", $elapsed, "s"
+
 when isMainModule:
+  benchmark:
     var buf5 = openFileStream("tests/bttf-gray.png", fmRead)
     var img5 = load_png(buf5)
     buf5.close()
@@ -72,5 +82,3 @@ when isMainModule:
     var out1 = openFileStream("tests/outxkcd.png", fmWrite)
     img1.save_png(out1)
     out1.close()
-
-    echo("Success.")

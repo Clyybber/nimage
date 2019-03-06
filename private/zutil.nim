@@ -26,7 +26,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import strutils
 import zip/zlib
 
 proc zuncompress*(data: string): string =
@@ -35,19 +34,19 @@ proc zuncompress*(data: string): string =
         size = data.len
     for mul in 2..6:
         # Need to use var for the size guess so we can take its address
-        var
-            unzip_size_guess = Ulongf((1 shl mul) * size)
-            uncompressed_str = newString(int(unzip_size_guess))
+        var unzip_size_guess = Ulongf((1 shl mul) * size)
+        echo unzip_size_guess #DEBUG
+        var result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
         # Warning! You can't use len(zdata) here, because the string can have null
         # bytes inside which cause an incorrect string length calculation.
         let res = zlib.uncompress(
-            uncompressed_str,
+            result,
             Pulongf(addr unzip_size_guess),
             zdata,
             Ulongf(size))
         if res == zlib.Z_OK:
-            uncompressed_str.setLen(unzip_size_guess)
-            return uncompressed_str
+            result.setLen(unzip_size_guess)
+            return result
         if res != zlib.Z_BUF_ERROR:
             raise newException(ValueError, "zlib returned error " & $res)
     raise newException(ValueError, "decompress too large; grew by more than 64x")
@@ -55,21 +54,19 @@ proc zuncompress*(data: string): string =
 proc zuncompress*(data: seq[uint8]): string =
     let size = data.len
     var zdata_str = newString(size)
-    for i in 0..size-1:
+    for i in 0..<size:
         zdata_str[i] = char(data[i])
     return zuncompress(zdata_str)
 
 proc zcompress*(data: string): string =
     let size = data.len
-    var
-        resultSize = zlib.compressBound(Ulong(size))
-        result = newString(resultSize)
+    var resultSize = zlib.compressBound(Ulong(size))
+    result.setLen(resultSize)
     let res = zlib.compress(
         result, Pulongf(addr resultSize), data, Ulongf(size))
     if res != zlib.Z_OK:
         raise newException(ValueError, "zlib returned error " & $res)
     result.setLen(resultSize)
-    return result
 
 proc zcrc*(data: varargs[string]): uint32 =
     var crc = crc32(Ulong(0), Pbytef(nil), Uint(0))

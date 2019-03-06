@@ -31,7 +31,7 @@ import math
 import png
 
 type
-    Filter* {. pure .} = enum
+    Filter* {.pure.} = enum
         none = 0
         sub = 1
         up = 2
@@ -53,7 +53,8 @@ proc paethpredict(a, b, c: int): int =
         return a
     if pb <= pc:
         return b
-    return c
+    else:
+        return c
 
 proc unapply*(
         filter: Filter, bpp: int, scanline: var string, last_scanline: string) =
@@ -79,11 +80,9 @@ proc unapply*(
             let pp = paethpredict(left, up, corner)
             scanline[i] = char(wmod(int(v) + pp, 256))
         of Filter.none: discard
-        #else:
-        #    raise newException(ValueError, "no support for filter " & $filter)
 
 proc apply*(
-        filter: Filter; bpp: int; scanline, last_scanline: string;
+        filter: Filter, bpp: int, scanline, last_scanline: string,
         res: var string) =
     assert(res.len == scanline.len)
     for i, v in scanline:
@@ -107,10 +106,8 @@ proc apply*(
         of Filter.paeth:
             let pp = paethpredict(left, up, corner)
             res[i] = char(wmod(int(v) - pp, 256))
-        #else:
-        #    raise newException(ValueError, "no support for filter " & $filter)
 
-proc choose_filter*(img: PngImage; scanline, last_scanline: string): Filter =
+proc choose_filter*(img: PngImage, scanline, last_scanline: string): Filter =
     if img.depth < 8'u8 or img.colorType == palette:
         return Filter.none
     var scores: array[low(Filter)..high(Filter), uint32]

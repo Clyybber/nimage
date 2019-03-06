@@ -26,11 +26,9 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import math
 import streams
 import strutils
 
-import bytestream
 import filter
 import image
 import png
@@ -39,10 +37,10 @@ import zutil
 const DEBUG = false
 
 proc readNInt32(s: Stream): int32 {. inline .} =
-    result = result or (int32(s.readUint8) shl 24)
-    result = result or (int32(s.readUint8) shl 16)
-    result = result or (int32(s.readUint8) shl 8)
-    result = result or (int32(s.readUint8))
+    (int32(s.readUint8) shl 24) or
+     (int32(s.readUint8) shl 16) or
+     (int32(s.readUint8) shl 8) or
+     (int32(s.readUint8))
 
 proc load_ihdr(img: PngImage, chunkData: string) =
     var buf = newStringStream(chunkData)
@@ -66,27 +64,26 @@ proc load_ihdr(img: PngImage, chunkData: string) =
 
 proc read_gray(stream: var StringStream): NColor =
     let g = uint32(stream.readUint8)
-    return NColor((uint32(g) shl 24) or (uint32(g) shl 16) or (g shl 8) or 0xFF'u32)
+    NColor((uint32(g) shl 24) or (uint32(g) shl 16) or (g shl 8) or 0xFF'u32)
 
 proc read_graya(stream: var StringStream): NColor =
     let
         g = uint32(stream.readUint8)
         a = uint32(stream.readUint8)
-    return NColor((uint32(g) shl 24) or (uint32(g) shl 16) or (g shl 8) or a)
+    NColor((uint32(g) shl 24) or (uint32(g) shl 16) or (g shl 8) or a)
 
 proc read_rgb(stream: var StringStream): NColor =
     let
         r = uint32(stream.readUint8)
         g = uint32(stream.readUint8)
         b = uint32(stream.readUint8)
-    return NColor(
-        (uint32(r) shl 24) or (uint32(g) shl 16) or (uint32(b) shl 8) or 0xFF'u32)
+    NColor((uint32(r) shl 24) or (uint32(g) shl 16) or (uint32(b) shl 8) or 0xFF'u32)
 
 proc read_rgba(stream: var StringStream): NColor =
-    return NColor(stream.readNInt32)
+    NColor(stream.readNInt32)
 
 proc read_palette(stream: var StringStream, img: PngImage): NColor =
-    return img.palette[stream.readUint8]
+    img.palette[stream.readUint8]
 
 proc load_idat(img: var PngImage, chunkData: string) =
     let uncompressed = zuncompress(chunkData)
@@ -101,7 +98,7 @@ proc load_idat(img: var PngImage, chunkData: string) =
         let filter = Filter(buf.readUint8)
         # read the scanline so we can unapply filters before reading colors
         var scanline = newString(img.width * img.bpp)
-        for i in 0..img.width * img.bpp - 1:
+        for i in 0..<img.width * img.bpp:
             scanline[i] = buf.readChar
         filter.unapply(img.bpp, scanline, last_scanline)
         var scanBuf = newStringStream(scanline)
@@ -119,8 +116,6 @@ proc load_idat(img: var PngImage, chunkData: string) =
                 color = scanBuf.read_rgba()
             of palette:
                 color = scanBuf.read_palette(img)
-            #else:
-            #    raise newException(ValueError, "can't decode color type " & $img.colorType)
             img[r, c] = color
             c += 1
         last_scanline = scanline
@@ -130,18 +125,18 @@ proc load_plte(img: PngImage, chunkData: string): int =
     let colors = int(chunkData.len / 3)
     assert(colors * 3 == chunkData.len)
     var buf = newStringStream(chunkData)
-    for i in img.palette.low..img.palette.high:
+    for v in img.palette.mitems:
         if not buf.atEnd:
-            img.palette[i] = read_rgb(buf)
+            v = read_rgb(buf)
         else:
-            img.palette[i] = NColor(0)
+            v = NColor(0)
     return colors
 
 proc load_png*(buf: Stream): Image =
     var result: PngImage
     new(result)
-    if( buf==nil):echo "Nilbuffer"
-    for i in 0..len(PNG_HEADER) - 1:
+    if buf.isNil:echo "Nilbuffer"
+    for i in 0..<PNG_HEADER.len:
         if buf.atEnd:
             raise newException(
                 ValueError, "file too short; only " & $i & " bytes long")
@@ -151,7 +146,7 @@ proc load_png*(buf: Stream): Image =
                 ValueError,
                 "header bytes did not match at position " & $i &
                 " header: " & $PNG_HEADER[i] & " file: " & $fheader)
-    var idats = newSeq[string]()
+    var idats: seq[string]
     while not buf.atEnd:
         let
             chunkLen = buf.readNInt32
@@ -182,7 +177,7 @@ proc load_png*(buf: Stream): Image =
         else:
             when DEBUG: echo("unknown chunk type " & itostr(chunkType))
     var idat_len = 0
-    for i, v in idats:
+    for v in idats:
         idat_len += v.len
     var idat = newString(idat_len)
     var last_i = 0

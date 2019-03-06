@@ -33,7 +33,7 @@ import filter
 import png
 import zutil
 
-proc writeNInt32(s: Stream; val: uint32) {. inline .} =
+proc writeNInt32(s: Stream, val: uint32) {. inline .} =
     s.write(uint8(val shr 24))
     s.write(uint8(val shr 16))
     s.write(uint8(val shr 8))
@@ -44,14 +44,14 @@ type
         colorType: ColorType
 
 proc default_opts*(): PngEncoderOpts =
-    return PngEncoderOpts(colorType: rgba)
+    PngEncoderOpts(colorType: rgba)
 
 proc new_opts*(colorType: ColorType): PngEncoderOpts =
     ## Create an encoder options struct for a given color type. Note that for
     ## grayscale color types, the value in the red channel is taken as the
     ## gray value; green and blue channels are ignored, and the alpha channel is
     ## ignored for gray (but not graya).
-    return PngEncoderOpts(colorType: colorType)
+    PngEncoderOpts(colorType: colorType)
 
 proc to_png(img: Image, opts: PngEncoderOpts): PngImage =
     new(result)
@@ -66,7 +66,7 @@ proc write_header(buf: Stream) =
     for v in PNG_HEADER:
         buf.write(uint8(v))
 
-proc write_chunk(buf: Stream; chunktype: string; chunk: string) =
+proc write_chunk(buf: Stream, chunktype: string, chunk: string) =
     buf.writeNInt32(uint32(chunk.len))
     buf.write(chunktype)
     buf.write(chunk)
@@ -84,24 +84,24 @@ proc write_IHDR(buf: Stream, img: PngImage) =
     buf.write_chunk("IHDR", chunk.data)
 
 proc to_rgba(c: NColor): string =
-    return itostr(uint32(c))
+    itostr(uint32(c))
 
 proc to_rgb(c: NColor): string =
-    return itostr(uint32(c), 3)
+    itostr(uint32(c), 3)
 
 proc to_gray(c: NColor): string =
-    return itostr(uint32(c), 1)
+    itostr(uint32(c), 1)
 
 proc to_graya(c: NColor): string =
-    return itostr(uint32(c), 1) & itostr(uint32(c) shl 24, 1)
+    itostr(uint32(c), 1) & itostr(uint32(c) shl 24, 1)
 
 proc write_IDAT(buf: Stream, img: PngImage) =
     var chunk = newStringStream()
     let sl_len = img.width * img.bpp
     var last_scanline: string
-    for r in 0..img.height-1:
+    for r in 0..<img.height:
         var scanline = newString(sl_len)
-        for c in 0..img.width-1:
+        for c in 0..<img.width:
             var cstr: string
             let color = img[r, c]
             case img.colorType

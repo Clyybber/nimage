@@ -41,21 +41,19 @@ type
 ## NColor implementation
 
 proc `$`*(color: NColor): string =
-    return color.int.toHex(8)
+    color.int.toHex(8)
 
-proc `==`*(c1, c2: NColor): bool =
-    return uint32(c1) == uint32(c2)
+proc `==`*(c1, c2: NColor): bool {.borrow.}
 
 # Image implementation
 
-proc get_index(img: Image; row, col: int): int = row * img.width + col
+proc get_index(img: Image, row, col: int): int = row * img.width + col
 
-proc `[]`*(img: Image; row, col: int): NColor =
-    return img.data[img.get_index(row, col)]
+proc `[]`*(img: Image, row, col: int): NColor =
+    img.data[img.get_index(row, col)]
 
-proc `[]=`*(img: Image; row, col: int; val: NColor) =
+proc `[]=`*(img: Image, row, col: int; val: NColor) =
     img.data[img.get_index(row, col)] = val
 
 proc create_image*(width, height: int): Image =
-    let data = newSeq[NColor](width * height)
-    return Image(width: width, height: height, data: data)
+    Image(width: width, height: height, data: newSeq[NColor](width * height))

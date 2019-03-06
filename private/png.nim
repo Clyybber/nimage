@@ -43,8 +43,7 @@ type
     PngImage* = ref PngImageObj
 
 proc `$`*(x: PngImage): string =
-    return ("(img w " & $x.width & " h " & $x.height & " depth " & $x.depth &
-            " colorType " & $x.colorType & ")")
+    "(img w " & $x.width & " h " & $x.height & " depth " & $x.depth & " colorType " & $x.colorType & ")"
 
 const PNG_HEADER* = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
 
@@ -66,15 +65,15 @@ proc itostr*(val: uint32, n = 4): string {.inline.} =
     ## Converts an integer to a string, as if the bytes had been copied directly
     ## out of the integer and into the bytestring. Copies the most-significant N
     ## bytes.
-    var result = ""
-    for i in 0..n-1:
+    for i in 0..<n:
         result.add(char((val shr uint32(8 * (3 - i))) and 0xFF))
-    return result
 
 template ifromstr*(s: string): uint32 =
     ## Gets the integer representation of a 4-character string. This does the
     ## safe-ish equivalent of "*((int*)(c_str))" in C. This does not check the
     ## bounds on its inputs!
     uint32(
-        int32(s[0]) shl 24 or int32(s[1]) shl 16 or
-        int32(s[2]) shl  8 or int32(s[3]))
+        int32(s[0]) shl 24 or
+        int32(s[1]) shl 16 or
+        int32(s[2]) shl  8 or
+        int32(s[3]))
