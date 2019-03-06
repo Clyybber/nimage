@@ -27,7 +27,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import math
-import unsigned
 
 import png
 
@@ -64,7 +63,7 @@ proc unapply*(
         var left, up, corner: int
         if i - bpp >= 0:
             left = int(scanline[i - bpp])
-        if not isNil(last_scanline):
+        if last_scanline.len != 0:
             up = int(last_scanline[i])
             if i - bpp >= 0:
                 corner = int(last_scanline[i - bpp])
@@ -80,8 +79,8 @@ proc unapply*(
             let pp = paethpredict(left, up, corner)
             scanline[i] = char(wmod(int(v) + pp, 256))
         of Filter.none: discard
-        else:
-            raise newException(ValueError, "no support for filter " & $filter)
+        #else:
+        #    raise newException(ValueError, "no support for filter " & $filter)
 
 proc apply*(
         filter: Filter; bpp: int; scanline, last_scanline: string;
@@ -91,7 +90,7 @@ proc apply*(
         var left, up, corner: int
         if i - bpp >= 0:
             left = int(scanline[i - bpp])
-        if not isNil(last_scanline):
+        if last_scanline.len != 0:
             up = int(last_scanline[i])
             if i - bpp >= 0:
                 corner = int(last_scanline[i - bpp])
@@ -108,8 +107,8 @@ proc apply*(
         of Filter.paeth:
             let pp = paethpredict(left, up, corner)
             res[i] = char(wmod(int(v) - pp, 256))
-        else:
-            raise newException(ValueError, "no support for filter " & $filter)
+        #else:
+        #    raise newException(ValueError, "no support for filter " & $filter)
 
 proc choose_filter*(img: PngImage; scanline, last_scanline: string): Filter =
     if img.depth < 8'u8 or img.colorType == palette:

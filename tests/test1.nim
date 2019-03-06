@@ -29,18 +29,17 @@
 import ../nimage
 import streams
 
-proc main() =
-    var buf5 = newFileStream("bttf-gray.png", fmRead)
-    if (buf5==nil): echo "nilbuff5"
+when isMainModule:
+    var buf5 = openFileStream("tests/bttf-gray.png", fmRead)
     var img5 = load_png(buf5)
     buf5.close()
     assert(img5[26, 89] == NColor(0x707070FF))
-    var out5 = newFileStream("outbttf-gray.png", fmWrite)
+    var out5 = openFileStream("tests/outbttf-gray.png", fmWrite)
     let opts5 = new_opts(ColorType.gray)
     img5.save_png(out5, opts5)
     out5.close()
     # Make sure we can read the images we're writing
-    var buf4 = newFileStream("bttf-gray.png", fmRead)
+    var buf4 = openFileStream("tests/bttf-gray.png", fmRead)
     let img4 = load_png(buf4)
     buf4.close()
     assert(img4.width == img5.width)
@@ -49,32 +48,29 @@ proc main() =
         for j in 0..img4.width-1:
             assert(img4[i, j] == img5[i, j])
 
-    var buf3 = newFileStream("bttf-palette.png", fmRead)
+    var buf3 = openFileStream("tests/bttf-palette.png", fmRead)
     let img3 = load_png(buf3)
     assert($img3[0, 0] == "010601FF")
     buf3.close()
-    var out3 = newFileStream("outbttf-gray.png", fmWrite)
+    var out3 = openFileStream("tests/outbttf-gray.png", fmWrite)
     let opts3 = new_opts(ColorType.graya)
     img3.save_png(out3, opts3)
     out3.close()
 
-    var buf2 = newFileStream("bttf.png", fmRead)
+    var buf2 = openFileStream("tests/bttf.png", fmRead)
     let img2 = load_png(buf2)
     buf2.close()
-    var out2 = newFileStream("outbttf.png", fmWrite)
+    var out2 = openFileStream("tests/outbttf.png", fmWrite)
     let opts2 = new_opts(ColorType.rgb)
     img2.save_png(out2, opts2)
     out2.close()
 
-    var buf1 = newFileStream("test1.png", fmRead)
+    var buf1 = openFileStream("tests/test1.png", fmRead)
     let img1 = load_png(buf1)
     assert($img1[0, 0] == "3C3C3CFF")
     buf1.close()
-    var out1 = newFileStream("outxkcd.png", fmWrite)
+    var out1 = openFileStream("tests/outxkcd.png", fmWrite)
     img1.save_png(out1)
     out1.close()
 
     echo("Success.")
-
-when isMainModule:
-    main()

@@ -28,8 +28,7 @@
 
 import math
 import streams
-import strfmt
-import unsigned
+import strutils
 
 import bytestream
 import dbgutil
@@ -116,8 +115,8 @@ proc load_idat(img: var PngImage, chunkData: string) =
                 color = scanBuf.read_rgba()
             of palette:
                 color = scanBuf.read_palette(img)
-            else:
-                raise newException(ValueError, "can't decode color type " & $img.colorType)
+            #else:
+            #    raise newException(ValueError, "can't decode color type " & $img.colorType)
             img[r, c] = color
             c += 1
         last_scanline = scanline
@@ -161,7 +160,7 @@ proc load_png*(buf: Stream): Image =
         if crc != chunkCrc:
             raise newException(
                 ValueError,
-                fmt("bad CRC; from file: {:08x}, from data: {:08x}", crc, chunkCrc))
+                "bad CRC; from file: " & crc.int.toHex(8) & ", from data: " & chunkCrc.int.toHex(8) )
         case chunkType
         of ifromstr("IHDR"):
             load_ihdr(result, chunkData)

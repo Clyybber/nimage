@@ -26,8 +26,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import strfmt
-import unsigned
+import strutils
 
 type
     ## A color in RGBA format, 8 bits per sample. For example, 50% red, 100%
@@ -42,7 +41,7 @@ type
 ## NColor implementation
 
 proc `$`*(color: NColor): string =
-    return fmt("{:08X}", uint32(color))
+    return color.int.toHex(8)
 
 proc `==`*(c1, c2: NColor): bool =
     return uint32(c1) == uint32(c2)

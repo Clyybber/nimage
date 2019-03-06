@@ -26,12 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import strfmt
-import unsigned
+import strutils
 
 ## Prints out a bytearray as a hex string
 proc echoHex*(s: string) =
-    var s = s
-    var bytes = newSeq[uint8](s.len)
-    copyMem(addr(bytes[0]), addr(s[0]), s.len)
-    echo(bytes.format("02Xa' '"))
+    echo s.toHex

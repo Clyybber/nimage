@@ -36,7 +36,7 @@ type
 
 proc bsClose(s: Stream) =
     var bs = ByteStream(s)
-    bs.data = nil
+    bs.data = @[]
 
 proc bsAtEnd(s: Stream): bool =
     let bs = ByteStream(s)

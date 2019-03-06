@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import strutils
-import zlib
+import zip/zlib
 
 proc zuncompress*(data: string): string =
     let
@@ -44,7 +44,7 @@ proc zuncompress*(data: string): string =
             uncompressed_str,
             Pulongf(addr unzip_size_guess),
             zdata,
-            size)
+            Ulongf(size))
         if res == zlib.Z_OK:
             uncompressed_str.setLen(unzip_size_guess)
             return uncompressed_str
@@ -65,7 +65,7 @@ proc zcompress*(data: string): string =
         resultSize = zlib.compressBound(Ulong(size))
         result = newString(resultSize)
     let res = zlib.compress(
-        result, Pulongf(addr resultSize), data, size)
+        result, Pulongf(addr resultSize), data, Ulongf(size))
     if res != zlib.Z_OK:
         raise newException(ValueError, "zlib returned error " & $res)
     result.setLen(resultSize)
@@ -74,7 +74,7 @@ proc zcompress*(data: string): string =
 proc zcrc*(data: varargs[string]): uint32 =
     var crc = crc32(Ulong(0), Pbytef(nil), Uint(0))
     for d in data:
-        if d.isNil:
+        if d.len == 0:
             continue
         var datum = d
         crc = crc32(crc, PBytef(addr(datum[0])), Uint(datum.len))

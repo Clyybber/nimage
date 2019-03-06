@@ -29,8 +29,6 @@
 import image
 import streamhelper
 import streams
-import strfmt
-import unsigned
 
 import dbgutil
 import filter

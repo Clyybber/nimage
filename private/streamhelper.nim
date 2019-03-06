@@ -26,21 +26,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import strfmt
 import streams
-import unsigned
 
 proc read*(s: Stream; length: int): string =
     if length <= 0:
-        return nil
+        return
     var res = newString(length)
     if s.readData(addr(res[0]), length) != length:
         raise newException(IOError, "cannot read " & $length & " bytes from stream")
     return res
-
-proc readUint8*(s: Stream): uint8 =
-    if readData(s, addr(result), sizeof(uint8)) != sizeof(uint8):
-        raise newException(IOError, "cannot read from stream")
 
 ## Reads a network-order int32. The default reads everything in little-endian,
 ## which is maddening.

@@ -28,7 +28,6 @@
 
 import ../nimage
 import streams
-import strfmt
 
 proc main() =
     let w = 2
