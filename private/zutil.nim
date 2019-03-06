@@ -35,7 +35,6 @@ proc zuncompress*(data: string): string =
     for mul in 2..6:
         # Need to use var for the size guess so we can take its address
         var unzip_size_guess = Ulongf((1 shl mul) * size)
-        echo unzip_size_guess #DEBUG
         var result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
         # Warning! You can't use len(zdata) here, because the string can have null
         # bytes inside which cause an incorrect string length calculation.
@@ -59,11 +58,10 @@ proc zuncompress*(data: seq[uint8]): string =
     return zuncompress(zdata_str)
 
 proc zcompress*(data: string): string =
-    let size = data.len
-    var resultSize = zlib.compressBound(Ulong(size))
+    var resultSize = zlib.compressBound(Ulong(data.len))
     result.setLen(resultSize)
     let res = zlib.compress(
-        result, Pulongf(addr resultSize), data, Ulongf(size))
+        result, Pulongf(addr resultSize), data, Ulongf(data.len))
     if res != zlib.Z_OK:
         raise newException(ValueError, "zlib returned error " & $res)
     result.setLen(resultSize)

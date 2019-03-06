@@ -29,12 +29,12 @@
 import ../nimage
 import streams
 
-proc main() =
+when isMainModule:
     let w = 2
     let h = 2
     var img1 = createImage(w, h)
-    for i in 0..h-1:
-        for j in 0..w-1:
+    for i in 0..<h:
+        for j in 0..<w:
             img1[i, j] = NColor(0xFF0000FF)
     img1[0, 0] = NColor(0x98765432)
     img1[0, 1] = NColor(0xABAD1DEA)
@@ -45,11 +45,7 @@ proc main() =
     var in1 = newFileStream("test.png", fmRead)
     var img2 = loadPng(in1)
     in1.close()
-    for i in 0..h-1:
-        for j in 0..w-1:
-            echo(fmt("{},{}: pre {} post {}", i, j, $img1[i,j], $img2[i,j]))
+    for i in 0..<h:
+        for j in 0..<w:
+            echo($i & "," & $j & ": pre " & $img1[i,j] & " post " & $img2[i,j])
             assert(img1[i,j] == img2[i,j])
-    echo("Success.")
-
-when isMainModule:
-    main()

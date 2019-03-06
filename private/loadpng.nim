@@ -135,7 +135,7 @@ proc load_plte(img: PngImage, chunkData: string): int =
 proc load_png*(buf: Stream): Image =
     var result: PngImage
     new(result)
-    if buf.isNil:echo "Nilbuffer"
+    assert(not buf.isNil)
     for i in 0..<PNG_HEADER.len:
         if buf.atEnd:
             raise newException(
