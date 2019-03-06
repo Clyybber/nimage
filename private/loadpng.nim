@@ -31,14 +31,18 @@ import streams
 import strutils
 
 import bytestream
-import dbgutil
 import filter
 import image
 import png
-import streamhelper
 import zutil
 
 const DEBUG = false
+
+proc readNInt32(s: Stream): int32 {. inline .} =
+    result = result or (int32(s.readUint8) shl 24)
+    result = result or (int32(s.readUint8) shl 16)
+    result = result or (int32(s.readUint8) shl 8)
+    result = result or (int32(s.readUint8))
 
 proc load_ihdr(img: PngImage, chunkData: string) =
     var buf = newStringStream(chunkData)
@@ -154,7 +158,7 @@ proc load_png*(buf: Stream): Image =
             chunkType = uint32(buf.readNInt32)
         when DEBUG: echo("chunk type " & itostr(chunkType) & " len " & $chunkLen)
         let
-            chunkData = buf.read(chunkLen)
+            chunkData = buf.readStr(chunkLen)
             crc = uint32(buf.readNInt32)
             chunkCrc = zcrc(itostr(chunkType), chunkData)
         if crc != chunkCrc:

@@ -27,13 +27,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import image
-import streamhelper
 import streams
 
-import dbgutil
 import filter
 import png
 import zutil
+
+proc writeNInt32(s: Stream; val: uint32) {. inline .} =
+    s.write(uint8(val shr 24))
+    s.write(uint8(val shr 16))
+    s.write(uint8(val shr 8))
+    s.write(uint8(val))
 
 type
     PngEncoderOpts* = object
