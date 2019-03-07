@@ -35,7 +35,7 @@ proc zuncompress*(data: string): string =
     for mul in 2..6:
         # Need to use var for the size guess so we can take its address
         var unzip_size_guess = Ulongf((1 shl mul) * size)
-        var result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
+        result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
         # Warning! You can't use len(zdata) here, because the string can have null
         # bytes inside which cause an incorrect string length calculation.
         let res = zlib.uncompress(
