@@ -39,27 +39,17 @@ proc writeNInt32(s: Stream, val: uint32) {. inline .} =
     s.write(uint8(val shr 8))
     s.write(uint8(val))
 
-type
-    PngEncoderOpts* = object
-        colorType: ColorType
+## Note that for grayscale color types, the value in the red channel is taken as
+## the gray value; green and blue channels are ignored, and the alpha channel is
+## ignored for gray (but not graya).
 
-proc default_opts*(): PngEncoderOpts =
-    PngEncoderOpts(colorType: rgba)
-
-proc new_opts*(colorType: ColorType): PngEncoderOpts =
-    ## Create an encoder options struct for a given color type. Note that for
-    ## grayscale color types, the value in the red channel is taken as the
-    ## gray value; green and blue channels are ignored, and the alpha channel is
-    ## ignored for gray (but not graya).
-    PngEncoderOpts(colorType: colorType)
-
-proc to_png(img: Image, opts: PngEncoderOpts): PngImage =
+proc to_png(img: Image, colorType: ColorType): PngImage =
     new(result)
     result.width = img.width
     result.height = img.height
     result.data = img.data
     result.depth = 8
-    result.colorType = opts.colorType
+    result.colorType = colorType
     result.interlaced = 0
 
 proc write_header(buf: Stream) =
@@ -84,16 +74,16 @@ proc write_IHDR(buf: Stream, img: PngImage) =
     buf.write_chunk("IHDR", chunk.data)
 
 proc to_rgba(c: NColor): string =
-    itostr(uint32(c))
+    intToStr(uint32(c))
 
 proc to_rgb(c: NColor): string =
-    itostr(uint32(c), 3)
+    intToStr(uint32(c), 3)
 
 proc to_gray(c: NColor): string =
-    itostr(uint32(c), 1)
+    intToStr(uint32(c), 1)
 
 proc to_graya(c: NColor): string =
-    itostr(uint32(c), 1) & itostr(uint32(c) shl 24, 1)
+    intToStr(uint32(c), 1) & intToStr(uint32(c) shl 24, 1)
 
 proc write_IDAT(buf: Stream, img: PngImage) =
     var chunk = newStringStream()
@@ -130,12 +120,9 @@ proc write_IDAT(buf: Stream, img: PngImage) =
 proc write_IEND(buf: Stream) =
     buf.write_chunk("IEND", "")
 
-proc save_png*(img: Image, buf: Stream, opts: PngEncoderOpts) =
-    let img = to_png(img, opts)
+proc save_png*(img: Image, buf: Stream, colorType: ColorType = rgba) =
+    let img = to_png(img, colorType)
     buf.write_header()
     buf.write_IHDR(img)
     buf.write_IDAT(img)
     buf.write_IEND()
-
-proc save_png*(img: Image, buf: Stream) =
-    save_png(img, buf, default_opts())

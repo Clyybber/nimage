@@ -26,19 +26,12 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from private/image import nil
+import private/image
+import private/png
+import private/loadpng
+import private/savepng
 
-export image.Image, image.`[]`, image.`[]=`, image.create_image
-export image.NColor, image.`==`, image.`$`
-
-from private/png import nil
-
+export image.Image, image.`[]`, image.`[]=`, image.create_image, image.NColor, image.`==`, image.`$`
 export png.ColorType
-
-from private/loadpng import nil
-
 export loadpng.load_png
-
-from private/savepng import nil
-
-export savepng.save_png, savepng.PngEncoderOpts, savepng.new_opts, savepng.default_opts
+export savepng.save_png

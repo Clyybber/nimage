@@ -45,8 +45,7 @@ when isMainModule:
     buf5.close()
     assert(img5[26, 89] == NColor(0x707070FF))
     var out5 = openFileStream("tests/outbttf-gray.png", fmWrite)
-    let opts5 = new_opts(ColorType.gray)
-    img5.save_png(out5, opts5)
+    img5.save_png(out5, ColorType.gray)
     out5.close()
     # Make sure we can read the images we're writing
     var buf4 = openFileStream("tests/bttf-gray.png", fmRead)
@@ -63,16 +62,14 @@ when isMainModule:
     assert($img3[0, 0] == "010601FF")
     buf3.close()
     var out3 = openFileStream("tests/outbttf-gray.png", fmWrite)
-    let opts3 = new_opts(ColorType.graya)
-    img3.save_png(out3, opts3)
+    img3.save_png(out3, ColorType.graya)
     out3.close()
 
     var buf2 = openFileStream("tests/bttf.png", fmRead)
     let img2 = load_png(buf2)
     buf2.close()
     var out2 = openFileStream("tests/outbttf.png", fmWrite)
-    let opts2 = new_opts(ColorType.rgb)
-    img2.save_png(out2, opts2)
+    img2.save_png(out2, ColorType.rgb)
     out2.close()
 
     var buf1 = openFileStream("tests/test1.png", fmRead)

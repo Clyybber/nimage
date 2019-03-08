@@ -38,31 +38,29 @@ proc zuncompress*(data: string): string =
         var result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
         # Warning! You can't use len(zdata) here, because the string can have null
         # bytes inside which cause an incorrect string length calculation.
-        let res = zlib.uncompress(
+        let res = uncompress(
             result,
             Pulongf(addr unzip_size_guess),
             zdata,
             Ulongf(size))
-        if res == zlib.Z_OK:
+        if res == Z_OK:
             result.setLen(unzip_size_guess)
             return result
-        if res != zlib.Z_BUF_ERROR:
+        if res != Z_BUF_ERROR:
             raise newException(ValueError, "zlib returned error " & $res)
     raise newException(ValueError, "decompress too large; grew by more than 64x")
 
 proc zuncompress*(data: seq[uint8]): string =
-    let size = data.len
-    var zdata_str = newString(size)
-    for i in 0..<size:
+    var zdata_str = newString(data.len)
+    for i in 0..<data.len:
         zdata_str[i] = char(data[i])
     return zuncompress(zdata_str)
 
 proc zcompress*(data: string): string =
-    var resultSize = zlib.compressBound(Ulong(data.len))
+    var resultSize = compressBound(Ulong(data.len))
     result.setLen(resultSize)
-    let res = zlib.compress(
-        result, Pulongf(addr resultSize), data, Ulongf(data.len))
-    if res != zlib.Z_OK:
+    let res = compress(result, Pulongf(addr resultSize), data, Ulongf(data.len))
+    if res != Z_OK:
         raise newException(ValueError, "zlib returned error " & $res)
     result.setLen(resultSize)
 
@@ -71,6 +69,5 @@ proc zcrc*(data: varargs[string]): uint32 =
     for d in data:
         if d.len == 0:
             continue
-        var datum = d
-        crc = crc32(crc, PBytef(addr(datum[0])), Uint(datum.len))
+        crc = crc32(crc, PBytef(unsafeAddr(d[0])), Uint(d.len))
     return uint32(crc)

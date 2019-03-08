@@ -37,10 +37,10 @@ import zutil
 const DEBUG = false
 
 proc readNInt32(s: Stream): int32 {. inline .} =
-    (int32(s.readUint8) shl 24) or
-     (int32(s.readUint8) shl 16) or
-     (int32(s.readUint8) shl 8) or
-     (int32(s.readUint8))
+    (int32(s.readUint8) shl 24 or
+     int32(s.readUint8) shl 16 or
+     int32(s.readUint8) shl 8 or
+     int32(s.readUint8))
 
 proc load_ihdr(img: PngImage, chunkData: string) =
     var buf = newStringStream(chunkData)
@@ -91,10 +91,9 @@ proc load_idat(img: var PngImage, chunkData: string) =
     let scanlines = int(len(uncompressed) / (img.width * img.bpp + 1))
     assert(scanlines * (img.width * img.bpp + 1) == len(uncompressed))
     assert(scanlines == img.height)
-    var r = 0
     var buf = newStringStream(uncompressed)
     var last_scanline: string
-    while r < scanlines:
+    for r in 0..<scanlines:
         let filter = Filter(buf.readUint8)
         # read the scanline so we can unapply filters before reading colors
         var scanline = newString(img.width * img.bpp)
@@ -102,8 +101,7 @@ proc load_idat(img: var PngImage, chunkData: string) =
             scanline[i] = buf.readChar
         filter.unapply(img.bpp, scanline, last_scanline)
         var scanBuf = newStringStream(scanline)
-        var c = 0
-        while c < img.width:
+        for c in 0..<img.width:
             var color: NColor
             case img.colorType
             of gray:
@@ -117,9 +115,7 @@ proc load_idat(img: var PngImage, chunkData: string) =
             of palette:
                 color = scanBuf.read_palette(img)
             img[r, c] = color
-            c += 1
         last_scanline = scanline
-        r += 1
 
 proc load_plte(img: PngImage, chunkData: string): int =
     let colors = int(chunkData.len / 3)
@@ -132,8 +128,7 @@ proc load_plte(img: PngImage, chunkData: string): int =
             v = NColor(0)
     return colors
 
-proc load_png*(buf: Stream): Image =
-    var result: PngImage
+proc load_png*(buf: Stream): PngImage =
     new(result)
     assert(not buf.isNil)
     for i in 0..<PNG_HEADER.len:
@@ -155,24 +150,24 @@ proc load_png*(buf: Stream): Image =
         let
             chunkData = buf.readStr(chunkLen)
             crc = uint32(buf.readNInt32)
-            chunkCrc = zcrc(itostr(chunkType), chunkData)
+            chunkCrc = zcrc(intToStr(chunkType), chunkData)
         if crc != chunkCrc:
             raise newException(
                 ValueError,
                 "bad CRC; from file: " & crc.int.toHex(8) & ", from data: " & chunkCrc.int.toHex(8) )
         case chunkType
-        of ifromstr("IHDR"):
+        of strToInt("IHDR"):
             load_ihdr(result, chunkData)
             when DEBUG: echo("  after ihdr: " & $result)
-        of ifromstr("PLTE"):
+        of strToInt("PLTE"):
             when DEBUG:
                 let colors = load_plte(result, chunkData)
                 echo("  color count: " & $colors)
             else:
                 discard load_plte(result, chunkData)
-        of ifromstr("IDAT"):
+        of strToInt("IDAT"):
             idats.add(chunkData)
-        of ifromstr("IEND"):
+        of strToInt("IEND"):
             discard
         else:
             when DEBUG: echo("unknown chunk type " & itostr(chunkType))
@@ -187,4 +182,3 @@ proc load_png*(buf: Stream): Image =
     load_idat(result, idat)
     when DEBUG:
         echo("loaded image " & $result)
-    return result

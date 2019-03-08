@@ -31,12 +31,12 @@ import math
 import png
 
 type
-    Filter* {.pure.} = enum
-        none = 0
-        sub = 1
-        up = 2
-        average = 3
-        paeth = 4
+    Filter* = enum
+        none
+        sub
+        up
+        average
+        paeth
 
 template wmod(v, m: int): int =
     ## Calculates v % m with sign wraparound, ensuring that the return value is in
@@ -56,8 +56,7 @@ proc paethpredict(a, b, c: int): int =
     else:
         return c
 
-proc unapply*(
-        filter: Filter, bpp: int, scanline: var string, last_scanline: string) =
+proc unapply*(filter: Filter, bpp: int, scanline: var string, last_scanline: string) =
     if filter == Filter.none:
         return
     for i, v in scanline:
@@ -108,20 +107,17 @@ proc apply*(
             res[i] = char(wmod(int(v) - pp, 256))
 
 proc choose_filter*(img: PngImage, scanline, last_scanline: string): Filter =
-    if img.depth < 8'u8 or img.colorType == palette:
-        return Filter.none
-    var scores: array[low(Filter)..high(Filter), uint32]
+    if img.depth < 8 or img.colorType == palette:
+        return
+    var scores: array[Filter, uint32]
     var buf = newString(scanline.len)
     for f in Filter:
         f.apply(img.bpp, scanline, last_scanline, buf)
         scores[f] = 0
         for i, v in buf:
             scores[f] += uint32(v)
-    var
-        min_score = uint32(scanline.len) * 256
-        min_f = Filter.none
+    var min_score = uint32(scanline.len) * 256
     for f, score in scores:
         if score < min_score:
             min_score = score
-            min_f = f
-    return min_f
+            result = f

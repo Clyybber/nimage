@@ -35,45 +35,41 @@ type
         palette = 3
         graya = 4
         rgba = 6
-    PngImageObj* = object of ImageObj
+    PngImage* = ref object of Image
         depth*: uint8
         colorType*: ColorType
         interlaced*: uint8
         palette*: array[0..255, NColor]
-    PngImage* = ref PngImageObj
 
 proc `$`*(x: PngImage): string =
     "(img w " & $x.width & " h " & $x.height & " depth " & $x.depth & " colorType " & $x.colorType & ")"
 
 const PNG_HEADER* = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
 
-## Returns the bytes per pixel for the given image
 proc bpp*(img: PngImage): int =
+    ## Returns the bytes per pixel for the given image
     let d = int(int(img.depth) / 8)
-    # We only support multiple-of-8 image depths
-    assert(d * 8 == int(img.depth))
+    assert(d * 8 == int(img.depth)) # We only support multiple-of-8 image depths
     case img.colorType
-    of gray:    return d
-    of rgb:     return 3 * d
-    of palette: return d
-    of graya:   return 2 * d
-    of rgba:    return 4 * d
-proc bpp*(img: ref PngImage): int = bpp(img[])
-proc bpp*(img: ptr PngImage): int = bpp(img[])
+    of gray:    d
+    of rgb:     3 * d
+    of palette: d
+    of graya:   2 * d
+    of rgba:    4 * d
 
-proc itostr*(val: uint32, n = 4): string {.inline.} =
+proc intToStr*(val: uint32, n = 4): string {.inline.} =
     ## Converts an integer to a string, as if the bytes had been copied directly
     ## out of the integer and into the bytestring. Copies the most-significant N
     ## bytes.
     for i in 0..<n:
         result.add(char((val shr uint32(8 * (3 - i))) and 0xFF))
 
-template ifromstr*(s: string): uint32 =
+template strToInt*(s: string): uint32 =
     ## Gets the integer representation of a 4-character string. This does the
     ## safe-ish equivalent of "*((int*)(c_str))" in C. This does not check the
     ## bounds on its inputs!
-    uint32(
-        int32(s[0]) shl 24 or
-        int32(s[1]) shl 16 or
-        int32(s[2]) shl  8 or
-        int32(s[3]))
+    #uint32(
+    (uint32(s[0]) shl 24 or
+     uint32(s[1]) shl 16 or
+     uint32(s[2]) shl  8 or
+     uint32(s[3]))

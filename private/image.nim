@@ -32,11 +32,9 @@ type
     ## A color in RGBA format, 8 bits per sample. For example, 50% red, 100%
     ## green, 0% blue, 100% alpha would be `NColor(0x80FF00FF)`.
     NColor* = distinct uint32
-    ImageObj* = object of RootObj
-        width*: int
-        height*: int
+    Image* = ref object of RootObj
+        width*, height*: int
         data*: seq[NColor] # Data is stored in row-major format
-    Image* = ref ImageObj
 
 ## NColor implementation
 
@@ -47,13 +45,11 @@ proc `==`*(c1, c2: NColor): bool {.borrow.}
 
 # Image implementation
 
-proc get_index(img: Image, row, col: int): int = row * img.width + col
-
 proc `[]`*(img: Image, row, col: int): NColor =
-    img.data[img.get_index(row, col)]
+    img.data[row * img.width + col]
 
 proc `[]=`*(img: Image, row, col: int; val: NColor) =
-    img.data[img.get_index(row, col)] = val
+    img.data[row * img.width + col] = val
 
 proc create_image*(width, height: int): Image =
     Image(width: width, height: height, data: newSeq[NColor](width * height))
