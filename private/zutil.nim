@@ -35,7 +35,7 @@ proc zuncompress*(data: string): string =
     for mul in 2..6:
         # Need to use var for the size guess so we can take its address
         var unzip_size_guess = Ulongf((1 shl mul) * size)
-        var result = newString(int(unzip_size_guess)) #TODO: why is the var needed?
+        result.setLen(int(unzip_size_guess))
         # Warning! You can't use len(zdata) here, because the string can have null
         # bytes inside which cause an incorrect string length calculation.
         let res = uncompress(
@@ -45,7 +45,7 @@ proc zuncompress*(data: string): string =
             Ulongf(size))
         if res == Z_OK:
             result.setLen(unzip_size_guess)
-            return result
+            return
         if res != Z_BUF_ERROR:
             raise newException(ValueError, "zlib returned error " & $res)
     raise newException(ValueError, "decompress too large; grew by more than 64x")
